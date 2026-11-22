@@ -1,5 +1,5 @@
 {
-  "year": 2026,
+  "year": 2026.0,
   "vivahMuhurtas": [
     {
       "month": "जानेवारी २०२६",
@@ -65,13 +65,13 @@
   },
   "sankashtiTimings": [
     {
-      "date": "७ जानेवारी २०२६",
-      "day": "बुधवार",
+      "date": "६ जानेवारी २०२६",
+      "day": "मंगळवार",
       "hinduMonth": "पौष वद्य चतुर्थी",
       "moonriseTime": "रात्री ०९:२५",
-      "type": "संकष्टी चतुर्थी",
+      "type": "अंगारकी संकष्टी चतुर्थी (लम्बोदर संकष्टी)",
       "isSankashti": true,
-      "isAngarki": false
+      "isAngarki": true
     },
     {
       "date": "२२ जानेवारी २०२६",
@@ -101,11 +101,11 @@
       "isAngarki": false
     },
     {
-      "date": "७ मार्च २०२६",
-      "day": "शनिवार",
+      "date": "४ मार्च २०२६",
+      "day": "बुधवार",
       "hinduMonth": "फाल्गुन वद्य चतुर्थी",
-      "moonriseTime": "रात्री ०९:४०",
-      "type": "संकष्टी चतुर्थी",
+      "moonriseTime": "रात्री ०९:२५",
+      "type": "संकष्टी चतुर्थी (विकट संकष्टी)",
       "isSankashti": true,
       "isAngarki": false
     },

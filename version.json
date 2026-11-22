@@ -1,10 +1,10 @@
 {
-  "version": 2,
+  "version": 3,
   "last_updated": "2026-11-22",
   "active_years": [2026, 2027],
   "years": {
     "2026": {
-      "version": 1,
+      "version": 2,
       "calendar_file": "calendar_data_2026.enc",
       "extras_file": "panchang_extras_2026.enc",
       "rashi_file": "rashi_bhavishya_2026.enc"
