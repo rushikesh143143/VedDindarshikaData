@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "last_updated": "2026-11-22",
+  "supported_years": [2026, 2027],
+  "years": {
+    "2026": {
+      "version": 1,
+      "calendar_file": "calendar_data_2026.json",
+      "extras_file": "panchang_extras_2026.json"
+    },
+    "2027": {
+      "version": 1,
+      "calendar_file": "calendar_data_2027.json",
+      "extras_file": "panchang_extras_2027.json"
+    }
+  }
+}
