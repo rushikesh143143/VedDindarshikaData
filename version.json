@@ -1,7 +1,12 @@
 {
   "version": 5,
-  "last_updated": "2026-11-22",
+  "last_updated": "2026-11-23",
   "active_years": [2026, 2027],
+  "enable_status_share": false,
+  "enable_ads": true,
+  "enable_banner_ads": true,
+  "enable_interstitial_ads": true,
+  "interstitial_interval": 3,
   "years": {
     "2026": {
       "version": 4,
