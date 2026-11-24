@@ -1,5 +1,5 @@
 {
-  "version": 15,
+  "version": 16,
   "last_updated": "2026-11-24",
   "active_years": [2026, 2027],
   "enable_status_share": false,
@@ -17,7 +17,7 @@
       "panchang_table_file": ""
     },
     "2027": {
-      "version": 7,
+      "version": 8,
       "calendar_file": "calendar_data_2027.enc",
       "extras_file": "panchang_extras_2027.enc",
       "rashi_file": "rashi_bhavishya_2027.enc",
