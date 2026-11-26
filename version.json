@@ -1,14 +1,14 @@
 {
-  "version": 30,
+  "version": 31,
   "last_updated": "2026-11-26",
   "active_years": [2026, 2027],
   "enable_status_share": false,
   "enable_ads": true,
   "enable_banner_ads": true,
-  "enable_interstitial_ads": false,
+  "enable_interstitial_ads": true,
   "enable_native_ads": true,
   "force_test_ads": false,
-  "interstitial_interval": 3,
+  "interstitial_interval": 4,
   "years": {
     "2026": {
       "version": 11,
