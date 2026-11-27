@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="mr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>वेद दिनदर्शिका - ॲडमिन कंट्रोल डॅशबोर्ड</title>
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts for Marathi (Mukta & Poppins) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;500;600;700;800&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Mukta', 'Poppins', sans-serif;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #F1F5F9;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #CBD5E1;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col">
+
+  <!-- PIN Lock Modal (Mandatory PIN Screen on Load) -->
+  <div id="pinLockModal" class="fixed inset-0 bg-slate-900/90 backdrop-blur-md z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-sm w-full p-6 text-center space-y-4 border border-slate-100">
+      <div class="w-16 h-16 mx-auto rounded-2xl bg-[#800000] text-amber-400 flex items-center justify-center text-3xl shadow">
+        🔐
+      </div>
+
+      <div>
+        <h3 class="text-xl font-bold text-slate-900">वेद दिनदर्शिका ॲडमिन</h3>
+        <p class="text-xs text-slate-500 mt-1">सण एडिट करण्यासाठी व ॲप अपडेट करण्यासाठी ४-अंकी गुप्त पिन टाका:</p>
+      </div>
+
+      <div class="space-y-2">
+        <input type="password" id="inputPinCode" maxlength="8" placeholder="• • • •" class="w-full text-center tracking-[0.5em] text-2xl font-black bg-slate-50 border-2 border-slate-300 rounded-2xl py-3 focus:outline-none focus:border-[#800000] focus:ring-4 focus:ring-[#800000]/10">
+        <p id="pinErrorMsg" class="text-xs text-red-600 font-bold hidden">❌ चुकीचा पिन! कृपया पुन्हा प्रयत्न करा.</p>
+      </div>
+
+      <button id="btnUnlockWithPin" class="w-full py-3 bg-[#800000] hover:bg-[#600000] text-white font-bold text-sm rounded-xl transition shadow-md flex items-center justify-center gap-2">
+        <span>अनलॉक करा</span>
+        <span>➔</span>
+      </button>
+
+      <p class="text-[11px] text-slate-400">
+        🔒 AES-256 GCM एन्क्रिप्टेड पिन व्हॉल्ट सिस्टीम
+      </p>
+    </div>
+  </div>
+
+  <!-- Top Header Navigation -->
+  <header class="bg-[#800000] text-white shadow-md sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-amber-400 text-[#800000] flex items-center justify-center font-extrabold text-xl shadow">
+          वेद
+        </div>
+        <div>
+          <h1 class="text-xl font-bold tracking-wide flex items-center gap-2">
+            वेद दिनदर्शिका - ॲडमिन डॅशबोर्ड
+            <span class="text-xs bg-amber-400 text-black px-2 py-0.5 rounded-full font-bold">Secure V5.5</span>
+          </h1>
+          <p class="text-xs text-amber-200">सण, उत्सव, पंचांग, Native Ads व GitHub ऑटो-पब्लिश प्रणाली</p>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex flex-wrap items-center gap-2">
+        <!-- Load from GitHub Live Button -->
+        <button id="btnLoadGitHub" class="bg-white/10 hover:bg-white/20 text-white text-xs sm:text-sm font-semibold px-3 py-2 rounded-lg transition flex items-center gap-1.5 border border-white/20" title="GitHub वरील लाईव्ह कॅलेंडर थेट लोड करा">
+          <span>☁️</span>
+          <span class="hidden sm:inline">GitHub वरून लोड करा</span>
+          <span class="sm:hidden">GitHub लोड</span>
+        </button>
+
+        <!-- One-Click Publish to GitHub Button (Smart Enable/Disable) -->
+        <button id="btnPublishGitHub" disabled class="opacity-50 cursor-not-allowed bg-slate-600 text-slate-300 text-xs sm:text-sm font-bold px-3.5 py-2 rounded-lg transition flex items-center gap-1.5 shadow border border-slate-500" title="कोणतेही बदल शिल्लक नाहीत">
+          <span>🚀</span>
+          <span>लाईव्ह पब्लिश करा</span>
+          <span id="publishBadge" class="hidden bg-amber-400 text-slate-900 text-[10px] font-extrabold px-1.5 py-0.5 rounded-full">बदल शिल्लक</span>
+        </button>
+
+        <!-- Export Local .enc Button -->
+        <button id="btnExportEnc" class="bg-amber-400 hover:bg-amber-500 text-slate-900 text-xs sm:text-sm font-bold px-3 py-2 rounded-lg transition flex items-center gap-1.5 shadow" title="स्थानिक फाईल डाउनलोड करा">
+          <span>🔐</span>
+          <span class="hidden md:inline">.enc डाऊनलोड</span>
+        </button>
+
+        <!-- Logout Button -->
+        <button id="btnLogoutDashboard" class="bg-red-500/80 hover:bg-red-600 text-white text-xs sm:text-sm font-bold px-3 py-2 rounded-lg transition flex items-center gap-1.5 border border-red-400 shadow-sm" title="सर्व सेशन बंद करून सुरक्षित लॉगआउट करा">
+          <span>🚪</span>
+          <span>लॉगआउट</span>
+        </button>
+
+        <!-- Settings Button -->
+        <button id="btnSettings" class="bg-white/10 hover:bg-white/20 text-white p-2 rounded-lg border border-white/20" title="GitHub टोकन व ॲप जाहिरात फ्लॅग्ज">
+          ⚙️
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Layout -->
+  <main class="max-w-7xl mx-auto px-4 py-6 flex-1 w-full flex flex-col gap-5">
+
+    <!-- Notification Bar -->
+    <div id="statusAlert" class="hidden p-3.5 rounded-xl text-sm font-medium flex items-center justify-between shadow-sm">
+      <span id="statusAlertText"></span>
+      <button onclick="document.getElementById('statusAlert').classList.add('hidden')" class="text-xs opacity-70 hover:opacity-100">✕ बंद करा</button>
+    </div>
+
+    <!-- Quick Status Bar (Connected Repo & Version info) -->
+    <div class="bg-white/80 backdrop-blur rounded-xl px-4 py-2 border border-slate-200 flex flex-wrap items-center justify-between text-xs text-slate-600 gap-2">
+      <div class="flex items-center gap-2">
+        <span id="githubStatusBadge" class="flex items-center gap-1 px-2.5 py-0.5 rounded-full font-bold bg-slate-100 text-slate-600 border border-slate-200">
+          <span class="w-2 h-2 rounded-full bg-slate-400"></span> GitHub: चेक करत आहे...
+        </span>
+        <span class="hidden sm:inline text-slate-400">•</span>
+        <span id="repoNameLabel" class="font-semibold text-slate-700">Repo: rushikesh143143/VedDindarshika (main)</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <span>ग्लोबल व्हर्जन: <strong id="lblGlobalVersion" class="text-emerald-700 font-bold">३१</strong></span>
+        <span>२०२६ व्हर्जन: <strong id="lbl2026Version" class="text-[#800000] font-bold">११</strong></span>
+        <span>२०२७ व्हर्जन: <strong id="lbl2027Version" class="text-[#800000] font-bold">१२</strong></span>
+      </div>
+    </div>
+
+    <!-- Year & Month Selector Strip -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 flex flex-col md:flex-row items-center justify-between gap-4">
+      <!-- Year Selector -->
+      <div class="flex items-center gap-2">
+        <span class="text-sm font-semibold text-slate-500">वर्ष निवडा:</span>
+        <div class="flex bg-slate-100 p-1 rounded-xl">
+          <button id="btnYear2026" class="px-4 py-1.5 text-sm font-bold rounded-lg bg-[#800000] text-white shadow-sm transition">२०२६</button>
+          <button id="btnYear2027" class="px-4 py-1.5 text-sm font-bold rounded-lg text-slate-600 hover:text-slate-900 transition">२०२७</button>
+        </div>
+      </div>
+
+      <!-- Month Tabs -->
+      <div class="flex items-center gap-1.5 overflow-x-auto max-w-full pb-1 md:pb-0 custom-scrollbar">
+        <div id="monthTabsContainer" class="flex gap-1.5">
+          <!-- Month buttons generated via JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Calendar Month Title & Badges Legend -->
+    <div class="flex flex-wrap items-center justify-between gap-2">
+      <div>
+        <h2 id="currentMonthHeading" class="text-2xl font-bold text-slate-800 flex items-center gap-2">
+          नोव्हेंबर २०२६
+          <span id="currentShakaText" class="text-sm font-normal text-slate-500">शके १९४८</span>
+        </h2>
+        <p class="text-xs text-slate-500 mt-0.5">तारीख किंवा सण बदलण्यासाठी खालील सेलवर क्लिक करा. प्राथमिक की सुरक्षित लॉक आहेत.</p>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-2 text-xs">
+        <span class="flex items-center gap-1 px-2.5 py-1 bg-red-50 text-red-700 rounded-md font-semibold border border-red-200">
+          <span class="w-2 h-2 rounded-full bg-red-600"></span> सुट्टी
+        </span>
+        <span class="flex items-center gap-1 px-2.5 py-1 bg-amber-50 text-amber-800 rounded-md font-semibold border border-amber-200">
+          <span class="w-2 h-2 rounded-full bg-amber-500"></span> शुभ दिवस
+        </span>
+        <span class="px-2 py-1 bg-orange-50 text-orange-800 rounded-md font-semibold border border-orange-200">🚩 एकादशी</span>
+        <span class="px-2 py-1 bg-rose-50 text-rose-800 rounded-md font-semibold border border-rose-200">🕉️ संकष्टी</span>
+        <span class="px-2 py-1 bg-yellow-50 text-yellow-800 rounded-md font-semibold border border-yellow-200">🌕 पौर्णिमा</span>
+        <span class="px-2 py-1 bg-slate-100 text-slate-800 rounded-md font-semibold border border-slate-300">🌑 अमावस्या</span>
+      </div>
+    </div>
+
+    <!-- Calendar Grid (Kalnirnay Style) -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+      <!-- Weekday Header (Sunday to Saturday) -->
+      <div class="grid grid-cols-7 bg-slate-50 border-b border-slate-200 text-center font-bold text-xs sm:text-sm">
+        <div class="py-2.5 sm:py-3 text-red-600 border-r border-slate-200">रविवार</div>
+        <div class="py-2.5 sm:py-3 text-slate-700 border-r border-slate-200">सोमवार</div>
+        <div class="py-2.5 sm:py-3 text-slate-700 border-r border-slate-200">मंगळवार</div>
+        <div class="py-2.5 sm:py-3 text-slate-700 border-r border-slate-200">बुधवार</div>
+        <div class="py-2.5 sm:py-3 text-slate-700 border-r border-slate-200">गुरुवार</div>
+        <div class="py-2.5 sm:py-3 text-slate-700 border-r border-slate-200">शुक्रवार</div>
+        <div class="py-2.5 sm:py-3 text-slate-700">शनिवार</div>
+      </div>
+
+      <!-- Days Grid Container -->
+      <div id="calendarDaysGrid" class="grid grid-cols-7 auto-rows-fr divide-x divide-y divide-slate-200 bg-slate-200/50">
+        <!-- Cells generated via JS -->
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Edit Day Modal -->
+  <div id="editModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 hidden">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[92vh] flex flex-col overflow-hidden border border-slate-100">
+
+      <!-- Modal Header -->
+      <div class="bg-[#800000] text-white px-5 sm:px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div id="modalDayNumber" class="text-2xl sm:text-3xl font-extrabold w-11 h-11 sm:w-12 sm:h-12 bg-amber-400 text-[#800000] rounded-2xl flex items-center justify-center shadow">
+            १०
+          </div>
+          <div>
+            <h3 id="modalDateTitle" class="text-base sm:text-lg font-bold">१० नोव्हेंबर २०२६ - मंगळवार</h3>
+            <span class="text-xs text-amber-200">प्राथमिक की (तारीख/वार) सुरक्षित लॉक आहेत • फक्त सण व फ्लॅग्ज एडिट करा</span>
+          </div>
+        </div>
+        <button id="modalCloseBtn" class="text-white/80 hover:text-white text-2xl font-bold p-1">✕</button>
+      </div>
+
+      <!-- Modal Body (Form) -->
+      <div class="p-5 sm:p-6 overflow-y-auto space-y-6 flex-1 custom-scrollbar">
+
+        <!-- विभाग १: मुख्य सण व उत्सव (Festivals) -->
+        <div class="space-y-3">
+          <h4 class="text-sm font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+            <span>🎉</span> सण व विशेष उत्सव
+          </h4>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">सण १ (मुख्य सण - कॅलेंडरवर ठळक दिसेल)</label>
+              <input type="text" id="inputFestival1" placeholder="उदा. भाऊबीज (यमद्वितीया)" class="w-full text-sm bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 font-semibold focus:outline-none focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000]">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">सण २ (दुसरा सण)</label>
+              <input type="text" id="inputFestival2" placeholder="उदा. गोवर्धन पूजा" class="w-full text-sm bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 font-semibold focus:outline-none focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000]">
+            </div>
+          </div>
+
+          <!-- Additional festivals collapsible -->
+          <details class="text-xs text-slate-600 bg-slate-50 rounded-xl p-3 border border-slate-200">
+            <summary class="font-bold cursor-pointer text-[#800000] select-none">अतिरिक्त सण (सण ३ ते सण ८) पहा / एडिट करा ❯</summary>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
+              <div>
+                <label class="block text-xs font-medium text-slate-500 mb-0.5">सण ३</label>
+                <input type="text" id="inputFestival3" class="w-full text-xs bg-white border border-slate-300 rounded-lg p-1.5">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-500 mb-0.5">सण ४</label>
+                <input type="text" id="inputFestival4" class="w-full text-xs bg-white border border-slate-300 rounded-lg p-1.5">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-500 mb-0.5">सण ५</label>
+                <input type="text" id="inputFestival5" class="w-full text-xs bg-white border border-slate-300 rounded-lg p-1.5">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-500 mb-0.5">सण ६</label>
+                <input type="text" id="inputFestival6" class="w-full text-xs bg-white border border-slate-300 rounded-lg p-1.5">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-500 mb-0.5">सण ७</label>
+                <input type="text" id="inputFestival7" class="w-full text-xs bg-white border border-slate-300 rounded-lg p-1.5">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-500 mb-0.5">सण ८</label>
+                <input type="text" id="inputFestival8" class="w-full text-xs bg-white border border-slate-300 rounded-lg p-1.5">
+              </div>
+            </div>
+          </details>
+        </div>
+
+        <!-- विभाग २: सुट्टी व धार्मिक बॅजेस (Badges & Toggles) -->
+        <div class="space-y-3">
+          <h4 class="text-sm font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+            <span>🏷️</span> सुट्टी व धार्मिक चिन्हे (Toggles)
+          </h4>
+
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            <!-- Holiday Checkbox -->
+            <label class="flex items-center gap-2 p-2.5 bg-red-50/70 border border-red-200 rounded-xl cursor-pointer hover:bg-red-100 transition">
+              <input type="checkbox" id="checkIsHoliday" class="w-4 h-4 text-red-600 rounded focus:ring-red-500">
+              <span class="text-xs font-bold text-red-700">सार्वजनिक सुट्टी (लाल रंग)</span>
+            </label>
+
+            <!-- Shubh Diwas Checkbox -->
+            <label class="flex items-center gap-2 p-2.5 bg-amber-50/70 border border-amber-200 rounded-xl cursor-pointer hover:bg-amber-100 transition">
+              <input type="checkbox" id="checkIsShubhDiwas" class="w-4 h-4 text-amber-600 rounded focus:ring-amber-500">
+              <span class="text-xs font-bold text-amber-800">🌸 शुभ दिवस बॅज</span>
+            </label>
+
+            <!-- Ekadashi Checkbox -->
+            <label class="flex items-center gap-2 p-2.5 bg-orange-50/70 border border-orange-200 rounded-xl cursor-pointer hover:bg-orange-100 transition">
+              <input type="checkbox" id="checkIsEkadashi" class="w-4 h-4 text-orange-600 rounded focus:ring-orange-500">
+              <span class="text-xs font-bold text-orange-800">🚩 एकादशी (ध्वज)</span>
+            </label>
+
+            <!-- Sankashti Checkbox -->
+            <label class="flex items-center gap-2 p-2.5 bg-rose-50/70 border border-rose-200 rounded-xl cursor-pointer hover:bg-rose-100 transition">
+              <input type="checkbox" id="checkIsSankashti" class="w-4 h-4 text-rose-600 rounded focus:ring-rose-500">
+              <span class="text-xs font-bold text-rose-800">🕉️ संकष्टी (श्री गणेश)</span>
+            </label>
+
+            <!-- Pournima Checkbox -->
+            <label class="flex items-center gap-2 p-2.5 bg-yellow-50/70 border border-yellow-200 rounded-xl cursor-pointer hover:bg-yellow-100 transition">
+              <input type="checkbox" id="checkIsPournima" class="w-4 h-4 text-yellow-600 rounded focus:ring-yellow-500">
+              <span class="text-xs font-bold text-yellow-800">🌕 पौर्णिमा (सुवर्ण चंद्र)</span>
+            </label>
+
+            <!-- Amavasya Checkbox -->
+            <label class="flex items-center gap-2 p-2.5 bg-slate-100 border border-slate-300 rounded-xl cursor-pointer hover:bg-slate-200 transition">
+              <input type="checkbox" id="checkIsAmavasya" class="w-4 h-4 text-slate-800 rounded focus:ring-slate-500">
+              <span class="text-xs font-bold text-slate-800">🌑 अमावस्या (काळा चंद्र)</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- विभाग ३: पंचांग तपशील (Panchang Details) -->
+        <div class="space-y-3">
+          <h4 class="text-sm font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+            <span>📜</span> पंचांग तपशील
+          </h4>
+
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">मराठी महिना</label>
+              <input type="text" id="inputMarathiMonth" placeholder="उदा. कार्तिक" class="w-full text-xs bg-slate-50 border border-slate-300 rounded-lg p-2">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">तिथी</label>
+              <input type="text" id="inputTithi" placeholder="उदा. कार्तिक शु. २" class="w-full text-xs bg-slate-50 border border-slate-300 rounded-lg p-2">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">नक्षत्र</label>
+              <input type="text" id="inputNakshatra" placeholder="उदा. अनुराधा" class="w-full text-xs bg-slate-50 border border-slate-300 rounded-lg p-2">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">योग</label>
+              <input type="text" id="inputYoga" placeholder="उदा. सौभाग्य" class="w-full text-xs bg-slate-50 border border-slate-300 rounded-lg p-2">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">करण</label>
+              <input type="text" id="inputKarana" placeholder="उदा. बव" class="w-full text-xs bg-slate-50 border border-slate-300 rounded-lg p-2">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">राशी</label>
+              <input type="text" id="inputRashi" placeholder="उदा. वृश्चिक" class="w-full text-xs bg-slate-50 border border-slate-300 rounded-lg p-2">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">सूर्योदय</label>
+              <input type="text" id="inputSunrise" placeholder="०६:४५" class="w-full text-xs bg-slate-50 border border-slate-300 rounded-lg p-2">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">सूर्यास्त</label>
+              <input type="text" id="inputSunset" placeholder="१८:३०" class="w-full text-xs bg-slate-50 border border-slate-300 rounded-lg p-2">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">चंद्रोदय</label>
+              <input type="text" id="inputMoonrise" placeholder="०८:५१" class="w-full text-xs bg-slate-50 border border-slate-300 rounded-lg p-2">
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="bg-slate-50 border-t border-slate-200 px-6 py-3.5 flex items-center justify-between">
+        <span class="text-xs text-slate-500">बदल तात्पुरते मेमरीमध्ये साठवले जातील. वरून पब्लिश करा.</span>
+        <div class="flex gap-2">
+          <button id="modalCancelBtn" class="px-4 py-2 text-sm font-semibold text-slate-600 hover:text-slate-900 transition">रद्द करा</button>
+          <button id="modalSaveDayBtn" class="px-5 py-2 text-sm font-bold bg-[#800000] text-white rounded-xl hover:bg-[#600000] transition shadow-sm">
+            ✓ बदल जतन करा
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Settings Modal (GitHub Token, PIN Vault & All 7 Ad Flags) -->
+  <div id="settingsModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 hidden">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-xl w-full max-h-[92vh] flex flex-col overflow-hidden border border-slate-100">
+
+      <div class="bg-slate-800 text-white px-6 py-4 flex items-center justify-between">
+        <div>
+          <h3 class="text-lg font-bold flex items-center gap-2">⚙️ GitHub व ॲप रिमोट सेटिंग्ज</h3>
+          <p class="text-xs text-slate-300">थेट GitHub ऑटो-पब्लिश आणि सर्व जाहिरात फ्लॅग्ज व्यवस्थापन</p>
+        </div>
+        <button onclick="document.getElementById('settingsModal').classList.add('hidden')" class="text-white/80 hover:text-white text-xl font-bold">✕</button>
+      </div>
+
+      <div class="p-6 overflow-y-auto space-y-6 flex-1 custom-scrollbar">
+
+        <!-- भाग १: सिक्रेट ॲडमिन पिन व्हॉल्ट -->
+        <div class="space-y-3 bg-amber-50/80 p-4 rounded-2xl border border-amber-300">
+          <div class="flex items-center justify-between">
+            <h4 class="text-sm font-bold text-amber-900 flex items-center gap-1.5">
+              <span>🛡️</span> सिक्रेट ॲडमिन पिन व्हॉल्ट
+            </h4>
+            <span id="vaultStatusBadge" class="text-[11px] font-bold px-2 py-0.5 rounded bg-amber-200 text-amber-900">सक्रिय</span>
+          </div>
+
+          <p class="text-xs text-amber-900 leading-relaxed">
+            तुमचा GitHub Token सिक्रेट पिनने AES-256 GCM कूटबद्ध करून सुरक्षित <code>admin_vault.enc</code> तयार करा. यामुळे कोणालाही टोकन दाखवावा लागणार नाही, फक्त सिक्रेट पिन टाकला की आपोआप अनलॉक होईल!
+          </p>
+
+          <div class="space-y-1.5">
+            <label class="block text-xs font-semibold text-amber-950">सिक्रेट पिन सेट करा (४ ते ६ आकडे):</label>
+            <input type="password" id="inputVaultPin" maxlength="8" placeholder="• • • •" class="w-full text-xs font-mono bg-white border border-amber-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-amber-500">
+          </div>
+
+          <button id="btnCreateVaultWithPin" class="w-full py-2.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-xl transition shadow flex items-center justify-center gap-2">
+            <span>🔐</span>
+            <span>सिक्रेट पिनने व्हॉल्ट तयार करा व सेव्ह करा</span>
+          </button>
+        </div>
+
+        <!-- भाग २: GitHub Personal Access Token (PAT) मॅन्युअल -->
+        <div class="space-y-3 bg-slate-50 p-4 rounded-2xl border border-slate-200">
+          <div class="flex items-center justify-between">
+            <h4 class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
+              <span>🔑</span> GitHub टोकन (मॅन्युअल कॉन्फिगरेशन)
+            </h4>
+            <span id="tokenStatusText" class="text-[11px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800">टोकन आवश्यक</span>
+          </div>
+
+          <div class="space-y-2">
+            <div class="relative">
+              <input type="password" id="inputGitHubToken" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" class="w-full text-xs font-mono bg-white border border-slate-300 rounded-xl px-3 py-2 pr-16 focus:outline-none focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000]">
+              <button type="button" id="btnToggleTokenVisibility" class="absolute right-2 top-2 text-xs text-slate-400 hover:text-slate-600 px-2 py-0.5">👁️ दाखवा</button>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 text-xs">
+              <div>
+                <label class="block text-slate-500 font-semibold mb-0.5">Repository:</label>
+                <input type="text" id="inputRepoName" value="rushikesh143143/VedDindarshika" class="w-full bg-white border border-slate-300 rounded-lg p-1.5 text-xs font-mono">
+              </div>
+              <div>
+                <label class="block text-slate-500 font-semibold mb-0.5">Branch:</label>
+                <input type="text" id="inputBranchName" value="main" class="w-full bg-white border border-slate-300 rounded-lg p-1.5 text-xs font-mono">
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between pt-1">
+              <span class="text-[11px] text-emerald-700">🔒 टोकन फक्त LocalStorage मध्ये सुरक्षित राहतो.</span>
+              <button id="btnSaveToken" class="px-3.5 py-1.5 bg-[#800000] text-white text-xs font-bold rounded-lg hover:bg-[#600000] transition">
+                टोकन सेव्ह करा
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- भाग ३: सर्वच्या सर्व जाहिरात फ्लॅग्ज (All Ad Flags) -->
+        <div class="space-y-3">
+          <h4 class="text-sm font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+            <span>📢</span> जाहिरात व ॲप फीचर्स (Live Remote Flags)
+          </h4>
+
+          <div class="space-y-2">
+            <!-- Master Ads Toggle -->
+            <label class="flex items-center justify-between p-3 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl cursor-pointer transition">
+              <div>
+                <span class="text-sm font-bold text-slate-800">सर्व जाहिराती चालू/बंद (enable_ads)</span>
+                <p class="text-xs text-slate-500">ॲपमधील संपूर्ण जाहिरातींचा मुख्य स्विच (Master Kill Switch)</p>
+              </div>
+              <input type="checkbox" id="cfgEnableAds" checked class="w-5 h-5 text-[#800000] rounded focus:ring-[#800000]">
+            </label>
+
+            <!-- Native Ads Toggle (Special!) -->
+            <label class="flex items-center justify-between p-3 bg-purple-50/70 hover:bg-purple-100/70 border border-purple-200 rounded-xl cursor-pointer transition">
+              <div>
+                <span class="text-sm font-bold text-purple-900">नेटिव्ह जाहिराती (enable_native_ads)</span>
+                <p class="text-xs text-purple-700">कॅलेंडर लिस्ट आणि तपशील स्क्रीनमधील नेटिव्ह जाहिराती</p>
+              </div>
+              <input type="checkbox" id="cfgEnableNativeAds" checked class="w-5 h-5 text-purple-600 rounded focus:ring-purple-500">
+            </label>
+
+            <!-- Banner Ads Toggle -->
+            <label class="flex items-center justify-between p-3 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl cursor-pointer transition">
+              <div>
+                <span class="text-sm font-bold text-slate-800">बॅनर जाहिराती (enable_banner_ads)</span>
+                <p class="text-xs text-slate-500">स्क्रीनच्या खाली येणाऱ्या अडॅप्टिव्ह बॅनर जाहिराती</p>
+              </div>
+              <input type="checkbox" id="cfgEnableBanner" checked class="w-5 h-5 text-[#800000] rounded focus:ring-[#800000]">
+            </label>
+
+            <!-- Interstitial Ads Toggle -->
+            <label class="flex items-center justify-between p-3 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl cursor-pointer transition">
+              <div>
+                <span class="text-sm font-bold text-slate-800">इंटरस्टिशिअल जाहिराती (enable_interstitial_ads)</span>
+                <p class="text-xs text-slate-500">फुल स्क्रीन जाहिराती</p>
+              </div>
+              <input type="checkbox" id="cfgEnableInterstitial" checked class="w-5 h-5 text-[#800000] rounded focus:ring-[#800000]">
+            </label>
+
+            <!-- Interstitial Interval -->
+            <div class="flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-xl">
+              <div>
+                <span class="text-sm font-bold text-slate-800">इंटरस्टिशिअल फ्रिक्वेन्सी (interstitial_interval)</span>
+                <p class="text-xs text-slate-500">युझरने किती क्लिक्स केल्यावर जाहिरात दिसावी (उदा. 4)</p>
+              </div>
+              <input type="number" id="cfgInterstitialInterval" value="4" min="1" max="20" class="w-16 text-center text-sm font-bold border border-slate-300 rounded-lg p-1.5">
+            </div>
+
+            <!-- Force Test Ads Toggle -->
+            <label class="flex items-center justify-between p-3 bg-amber-50/70 hover:bg-amber-100/70 border border-amber-200 rounded-xl cursor-pointer transition">
+              <div>
+                <span class="text-sm font-bold text-amber-900">गुगल टेस्ट जाहिराती (force_test_ads)</span>
+                <p class="text-xs text-amber-700">डेव्हलपमेंटसाठी AdMob टेस्ट युनिट्स सक्तीने चालू करा</p>
+              </div>
+              <input type="checkbox" id="cfgForceTestAds" class="w-5 h-5 text-amber-600 rounded focus:ring-amber-500">
+            </label>
+
+            <!-- Status Share Toggle -->
+            <label class="flex items-center justify-between p-3 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl cursor-pointer transition">
+              <div>
+                <span class="text-sm font-bold text-slate-800">व्हॉट्सॲप स्टेटस शेअरिंग (enable_status_share)</span>
+                <p class="text-xs text-slate-500">सण शेअरिंग बटन चालू/बंद</p>
+              </div>
+              <input type="checkbox" id="cfgEnableStatusShare" class="w-5 h-5 text-[#800000] rounded focus:ring-[#800000]">
+            </label>
+          </div>
+        </div>
+
+        <!-- भाग ४: व्हर्जन माहिती (Auto Version Info) -->
+        <div class="space-y-3 bg-emerald-50/60 p-4 rounded-2xl border border-emerald-200 text-xs">
+          <h4 class="font-bold text-emerald-900 flex items-center gap-1.5 text-sm">
+            <span>📈</span> ऑटो-व्हर्जनिंग सिस्टीम (Auto Increment)
+          </h4>
+          <p class="text-emerald-800">
+            जेव्हा तुम्ही वर **"🚀 लाईव्ह पब्लिश करा"** दाबाल, तेव्हा GitHub वरील `version.json` मधील मुख्य व्हर्जन नंबर आपोआप <strong>+१</strong> ने वाढेल. त्यामुळे सर्व युझर्सच्या मोबाईलमध्ये नवीन सण व नवीन सेटिंग्ज आपोआप सिंक होतील!
+          </p>
+        </div>
+
+      </div>
+
+      <div class="bg-slate-50 border-t px-6 py-3.5 flex items-center justify-between">
+        <span class="text-xs text-slate-500">सेटिंग्ज आपोआप सेव्ह होतात.</span>
+        <button onclick="document.getElementById('settingsModal').classList.add('hidden')" class="px-5 py-2 text-sm font-bold bg-slate-800 text-white rounded-xl hover:bg-slate-900 transition">
+          पूर्ण झाले
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Publish Confirmation / Progress Modal -->
+  <div id="publishProgressModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 text-center space-y-4 border border-slate-100">
+      <div id="publishIconWrapper" class="w-16 h-16 mx-auto rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center text-3xl shadow">
+        🚀
+      </div>
+
+      <h3 id="publishModalTitle" class="text-xl font-bold text-slate-800">थेट GitHub वर पब्लिश करत आहे...</h3>
+      <p id="publishModalStatus" class="text-sm text-slate-600">कृपया थांबा, डेटा एन्क्रिप्ट करून GitHub वर सुरक्षित पाठवला जात आहे.</p>
+
+      <!-- Step List -->
+      <div id="publishStepList" class="text-left text-xs space-y-2 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+        <div id="stepEncrypt" class="flex items-center gap-2 text-slate-500">
+          <span class="w-2 h-2 rounded-full bg-slate-300"></span> १. AES-256 GCM एन्क्रिप्शन...
+        </div>
+        <div id="stepPushCalendar" class="flex items-center gap-2 text-slate-500">
+          <span class="w-2 h-2 rounded-full bg-slate-300"></span> २. GitHub वर .enc फाईल सेव्ह करणे...
+        </div>
+        <div id="stepUpdateVersion" class="flex items-center gap-2 text-slate-500">
+          <span class="w-2 h-2 rounded-full bg-slate-300"></span> ३. version.json ऑटो-इन्क्रीमेंट करणे...
+        </div>
+        <div id="stepFinalize" class="flex items-center gap-2 text-slate-500">
+          <span class="w-2 h-2 rounded-full bg-slate-300"></span> ४. लाईव्ह युझर्ससाठी उपलब्ध करणे...
+        </div>
+      </div>
+
+      <div id="publishModalFooter" class="pt-2 hidden">
+        <button id="btnPublishDone" onclick="document.getElementById('publishProgressModal').classList.add('hidden')" class="w-full py-2.5 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 transition">
+          उत्कृष्ट! बंद करा
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript Application Logic -->
+  <script src="app.js"></script>
+</body>
+</html>
