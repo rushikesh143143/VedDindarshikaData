@@ -1,5 +1,5 @@
 {
-  "version": 34,
+  "version": 35,
   "last_updated": "2026-11-27",
   "active_years": [
     2026,
@@ -14,7 +14,7 @@
   "interstitial_interval": 4,
   "years": {
     "2026": {
-      "version": 14,
+      "version": 15,
       "calendar_file": "calendar_data_2026.enc",
       "extras_file": "panchang_extras_2026.enc",
       "rashi_file": "rashi_bhavishya_2026.enc",
