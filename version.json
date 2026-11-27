@@ -1,20 +1,20 @@
 {
-  "version": 37,
+  "version": 38,
   "last_updated": "2026-11-28",
   "active_years": [
     2026,
     2027
   ],
   "enable_status_share": false,
-  "enable_ads": false,
-  "enable_banner_ads": false,
-  "enable_interstitial_ads": false,
-  "enable_native_ads": false,
+  "enable_ads": true,
+  "enable_banner_ads": true,
+  "enable_interstitial_ads": true,
+  "enable_native_ads": true,
   "force_test_ads": false,
   "interstitial_interval": 4,
   "years": {
     "2026": {
-      "version": 17,
+      "version": 18,
       "calendar_file": "calendar_data_2026.enc",
       "extras_file": "panchang_extras_2026.enc",
       "rashi_file": "rashi_bhavishya_2026.enc",
